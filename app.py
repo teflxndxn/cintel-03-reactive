@@ -37,7 +37,7 @@
 
 
 import plotly.express as px
-from shiny import App, ui, render
+from shiny import App, ui, render, reactive
 from shinywidgets import output_widget, render_widget
 import seaborn as sns
 from palmerpenguins import load_penguins
@@ -97,11 +97,11 @@ app_ui = ui.page_fluid(
 def server(input, output, session):
     @render.data_frame
     def penguin_data_table():
-        return penguins_df
+        return filtered_data()
 
     @render.data_frame
     def penguin_data_grid():
-        return penguins_df
+        return filtered_data()
 
     @render_widget
     def plotly_histogram():
@@ -110,7 +110,7 @@ def server(input, output, session):
         if not bins:
             bins = 10
         fig = px.histogram(
-            penguins_df,
+            filtered_data(),
             x=col,
             nbins=int(bins),
             color="species",
@@ -125,7 +125,7 @@ def server(input, output, session):
         if not bins:
             bins = 20
         sns.histplot(
-            data=penguins_df,
+            data=filtered_data(),
             x=col,
             bins=int(bins),
             hue="species"
@@ -134,7 +134,7 @@ def server(input, output, session):
     @render_widget
     def plotly_scatterplot():
         fig = px.scatter(
-            penguins_df,
+            filtered_data(),
             x="bill_length_mm",
             y="flipper_length_mm",
             color="species",
@@ -147,5 +147,12 @@ def server(input, output, session):
             title="Bill Length vs Flipper Length by Species"
         )
         return fig
+
+    # --------------------------------------------------------
+    # Reactive calculation returning the full DataFrame for now
+    # --------------------------------------------------------
+    @reactive.calc
+    def filtered_data():
+        return penguins_df
 
 app = App(app_ui, server)
