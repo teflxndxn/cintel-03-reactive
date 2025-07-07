@@ -1,6 +1,5 @@
 # Additional Python Notes
 # ------------------------
-
 # Capitalization matters in Python. Python is case-sensitive: min and Min are different.
 # Spelling matters in Python. You must match the spelling of functions and variables exactly.
 # Indentation matters in Python. Indentation is used to define code blocks and must be consistent.
@@ -17,10 +16,9 @@
 # The function name should describe what the function does.
 # In the parentheses, specify the inputs needed as arguments the function takes.
 
-# For example:
-#    The function filtered_data() takes no arguments.
-#    The function between(min, max) takes two arguments, a minimum and maximum value.
-#    Arguments can be positional or keyword arguments, labeled with a parameter name.
+# The function filtered_data() takes no arguments.
+# The function between(min, max) takes two arguments, a minimum and maximum value.
+# Arguments can be positional or keyword arguments, labeled with a parameter name.
 
 # The function body is indented (consistently!) after the colon. 
 # Use the return keyword to return a value from a function.
@@ -35,9 +33,8 @@
 # Decorators are a concise way of calling a function on a function.
 # We don't typically write decorators, but we often use them.
 
-
 import plotly.express as px
-from shiny import App, ui, render, reactive
+from shiny import App, ui, render, reactive, req
 from shinywidgets import output_widget, render_widget
 import seaborn as sns
 from palmerpenguins import load_penguins
@@ -95,6 +92,14 @@ app_ui = ui.page_fluid(
 )
 
 def server(input, output, session):
+    @reactive.calc
+    def filtered_data():
+        # Ensure the user selected at least one species
+        req(input.selected_species_list())
+        
+        # Filter the DataFrame to only include selected species
+        return penguins_df[penguins_df["species"].isin(input.selected_species_list())]
+
     @render.data_frame
     def penguin_data_table():
         return filtered_data()
@@ -147,12 +152,5 @@ def server(input, output, session):
             title="Bill Length vs Flipper Length by Species"
         )
         return fig
-
-    # --------------------------------------------------------
-    # Reactive calculation returning the full DataFrame for now
-    # --------------------------------------------------------
-    @reactive.calc
-    def filtered_data():
-        return penguins_df
 
 app = App(app_ui, server)
